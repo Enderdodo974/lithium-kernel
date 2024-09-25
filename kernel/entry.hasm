@@ -1,0 +1,18 @@
+// entry.hasm
+
+bits == 16
+minreg 16
+minheap 32768
+minstack 0
+run ROM
+
+@define KERNEL_STACK_SIZE 1024
+
+._entry:
+        ldi r1 KERNEL_STACK_SIZE
+        ldi sp KERNEL_BASE
+        add sp sp r1
+        call main
+
+        // program execution should never reach this point
+        hlt
