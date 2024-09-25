@@ -70,3 +70,60 @@ void uart_init(void)
   // enable transmit and receive interrupts
   WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE);
 }
+
+// add a character to the output buffer and tell the UART to
+// start sending if it isn't already.
+// blocks if the output buffer is full. because it may block,
+// it can't be called from interrupts; it's only suitable for use
+// by write().
+void uart_putc(int c)
+{
+  while (uart_tx_w == uart_tx_r + UART_TX_BUFFER_SIZE) {
+    // buffer is full.
+    // wait for uart_start() to open up space in the buffer.
+    sleep(&uart_tx_r);
+  }
+  uart_tx_buffer[uart_tx_w % UART_TX_BUFFER_SIZE] = c;
+  uart_tx_w++;
+  uart_start();
+}
+
+// alternate version of uart_putc() that doesn't
+// use interrupts, for use by kernel printf() and
+// to echo characters. it spins waiting for the uart's
+// output register to be empty.
+void uart_putc_sync(int c)
+{
+  // wait for Transmit Holding Empty to be set in LSR
+  while ((ReadReg(LSR) & LSR_TX_IDLE) == 0)
+    ;
+  WriteReg(THR, c);
+}
+
+// if the UART is idle, and a character is waiting in the transmit
+// buffer, send it. called from both the top- and bottom-half.
+void uart_start(void)
+{
+  for (;;) {
+    if (uart_tx_w == uart_tx_r) {
+      // transmit buffer is empty.
+      ReadReg(ISR);
+      return;
+    }
+
+    if ((ReadReg(LSR) & LSR_TX_IDLE) == 0) {
+      // the UART transmit holding register is full,
+      // so we cannot give it another byte.
+      // it will interrupt when it's ready for a new byte.
+      return;
+    }
+
+    int c = uart_tx_buffer[uart_tx_r % UART_TX_BUFFER_SIZE];
+    uart_tx_r++;
+
+    // maybe uart_putc() is waiting for space in the buffer.
+    wakeup(&uart_tx_r);
+
+    WriteReg(THR, c);
+  }
+}

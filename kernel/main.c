@@ -10,4 +10,7 @@ void main(void)
 
   // console initialisation for logs and debug output
   console_init();
+  printf("lithium-kernel is now booting...");
+  printf("\n");
+  kinit();
 }

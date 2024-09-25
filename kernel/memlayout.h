@@ -12,16 +12,17 @@
 */
 
 // UART
-#define UART0 0x2000
-#define UART_IRQ 10
+#define UART0       0x2000
+#define UART_IRQ        10
 
 // virtio mmio interface
-#define VIRTIO0 0x3100
-#define VIRTIO0_IRQ 1
+#define VIRTIO0     0x3100
+#define VIRTIO0_IRQ      1
 
 // kernel
 #define KERNEL_BASE 0x0000
-#define PHYS_STOP 0x7fff
+#define KERNEL_END  0x1fff
+#define PHYS_STOP   0x7fff
 
 // trampoline
 // map the trampoline page to the highest address,
