@@ -7,6 +7,7 @@
  * 1fff -- end of kernel space
  * 2000 -- UART0
  * 3100 -- virtio disk
+ * 4000 -- begginning of free RAM
  *
  * 7fff -- end of physical RAM (PHY_STOP)
 */
@@ -27,11 +28,11 @@
 // trampoline
 // map the trampoline page to the highest address,
 // in both user and kernel space
-#define TRAMPOLINE (MAXVA - PGSIZE)
+#define TRAMPOLINE (MAX_VA - PAGE_SIZE)
 
 // map kernel stack beneath the trampoline,
 // surrounded by invalid guard pages
-#define KERNEL_STACK_VA(p) (TRAMPOLINE - ((p) + 1) * 2 * PGSIZE)
+#define KERNEL_STACK_VA(p) (TRAMPOLINE - ((p) + 1) * 2 * PAGE_SIZE)
 
 // User memory layout
 // Address 0 first:
@@ -42,4 +43,4 @@
 //   ...
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
-#define TRAPFRAME (TRAMPOLINE - PGSIZE)
+#define TRAPFRAME (TRAMPOLINE - PAGE_SIZE)
